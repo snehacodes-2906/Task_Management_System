@@ -12,18 +12,21 @@ router.post('/register', async (req, res) => {
 
     const { name, email, password } = req.body;
 
+    // Check if fields are filled
     if (!name || !email || !password) {
       return res.status(400).json({
         message: 'Please provide all fields'
       });
     }
 
+    // Check password length
     if (password.length < 6) {
       return res.status(400).json({
         message: 'Password must be at least 6 characters'
       });
     }
 
+    // Check if user already exists
     const oldUser = await User.findOne({ email });
 
     if (oldUser) {
@@ -32,6 +35,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // Create user
     const user = new User({
       name,
       email,
@@ -40,21 +44,9 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
-
-    const token = jwt.sign(
-      { user: { id: user.id } },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }
+    // Do not create token here
+    res.status(201).json({
+      message: 'Registration successful. Please login.'
     });
 
   } catch (error) {
@@ -76,6 +68,7 @@ router.post('/login', async (req, res) => {
 
     const { email, password } = req.body;
 
+    // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -84,6 +77,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Check password
     const correctPassword = await user.matchPassword(password);
 
     if (!correctPassword) {
@@ -92,14 +86,14 @@ router.post('/login', async (req, res) => {
       });
     }
 
-
+    // Create token
     const token = jwt.sign(
       { user: { id: user.id } },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-
+    // Send token
     res.json({
       token,
       user: {
