@@ -1,6 +1,8 @@
+// frontend/src/pages/Reports.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import './Reports.css';
 
 function Reports() {
   const [stats, setStats] = useState({
@@ -13,6 +15,7 @@ function Reports() {
     lowPriority: 0,
     completionRate: 0
   });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,10 +24,13 @@ function Reports() {
 
   const fetchReports = async () => {
     try {
+      setLoading(true);
       const res = await api.get('/reports');
       setStats(res.data);
     } catch (err) {
       console.error('Error fetching reports:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,102 +41,198 @@ function Reports() {
   };
 
   return (
-    <div>
-      <nav style={{ background: '#2c3e50', padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: 'white', margin: 0 }}>📊 Reports</h2>
-        <div>
-          <Link to="/dashboard" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Dashboard</Link>
-          <Link to="/projects" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Projects</Link>
-          <Link to="/tasks" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Tasks</Link>
-          <Link to="/calendar" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Calendar</Link>
-          <Link to="/reports" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Reports</Link>
-          <Link to="/profile" style={{ color: 'white', margin: '0 10px', textDecoration: 'none' }}>Profile</Link>
-          <button onClick={logout} style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '4px' }}>Logout</button>
+    <div className="reports-page">
+      {/* Navbar */}
+      <nav className="reports-navbar">
+        <div className="brand">
+          <div className="brand-icon">✓</div>
+          Task Manager
+        </div>
+        <div className="nav-links">
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/projects">Projects</Link>
+          <Link to="/tasks">Tasks</Link>
+          <Link to="/calendar">Calendar</Link>
+          <Link to="/reports" className="active">Reports</Link>
+          <Link to="/profile">Profile</Link>
+        </div>
+        <div className="nav-actions">
+          <button className="logout-btn" onClick={logout}>Logout</button>
         </div>
       </nav>
 
-      <div className="container">
-        <h1>Task Reports</h1>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginTop: '20px' }}>
-          <div style={{ background: '#3498db', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>Total Tasks</h3>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>{stats.totalTasks}</p>
+      <div className="reports-container">
+        {/* Header */}
+        <div className="reports-header">
+          <div>
+            <h1>Reports</h1>
+            <p className="subtitle">View your task statistics and progress</p>
           </div>
-          <div style={{ background: '#27ae60', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>Completed</h3>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>{stats.completedTasks}</p>
-          </div>
-          <div style={{ background: '#e74c3c', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>Pending</h3>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>{stats.pendingTasks}</p>
-          </div>
-          <div style={{ background: '#f39c12', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>In Progress</h3>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>{stats.inProgressTasks}</p>
+          <div className="header-date">
+            {new Date().toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'long', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '20px' }}>
-          <div style={{ background: '#e67e22', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>🔴 High Priority</h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '10px 0' }}>{stats.highPriority}</p>
-          </div>
-          <div style={{ background: '#f1c40f', color: 'black', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>🟡 Medium Priority</h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '10px 0' }}>{stats.mediumPriority}</p>
-          </div>
-          <div style={{ background: '#2ecc71', color: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3>🟢 Low Priority</h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '10px 0' }}>{stats.lowPriority}</p>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '30px', background: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-          <h3>📈 Overall Completion Rate</h3>
-          <div style={{ 
-            width: '200px', 
-            height: '200px', 
-            borderRadius: '50%', 
-            background: `conic-gradient(#27ae60 ${stats.completionRate}%, #e74c3c ${stats.completionRate}%)`,
-            margin: '20px auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{ 
-              background: 'white', 
-              width: '140px', 
-              height: '140px', 
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column'
-            }}>
-              <p style={{ fontSize: '36px', fontWeight: 'bold', margin: '0', color: '#2c3e50' }}>{stats.completionRate}%</p>
-              <p style={{ margin: '0', color: '#666', fontSize: '12px' }}>Complete</p>
+        {loading ? (
+          <p className="loading-text">Loading reports...</p>
+        ) : (
+          <>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                
+                <div className="stat-info">
+                  <span className="stat-label">Total Tasks</span>
+                  <span className="stat-number">{stats.totalTasks}</span>
+                </div>
+              </div>
+              <div className="stat-card green">
+                
+                <div className="stat-info">
+                  <span className="stat-label">Completed</span>
+                  <span className="stat-number">{stats.completedTasks}</span>
+                </div>
+              </div>
+              <div className="stat-card orange">
+                
+                <div className="stat-info">
+                  <span className="stat-label">Pending</span>
+                  <span className="stat-number">{stats.pendingTasks}</span>
+                </div>
+              </div>
+              <div className="stat-card blue">
+                
+                <div className="stat-info">
+                  <span className="stat-label">In Progress</span>
+                  <span className="stat-number">{stats.inProgressTasks}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div style={{ marginTop: '20px', background: '#ecf0f1', padding: '20px', borderRadius: '8px' }}>
-          <h3>📊 Summary</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
-              Total Tasks: <strong>{stats.totalTasks}</strong>
-            </li>
-            <li style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
-              Completed: <strong style={{ color: '#27ae60' }}>{stats.completedTasks}</strong>
-            </li>
-            <li style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
-              Pending: <strong style={{ color: '#e74c3c' }}>{stats.pendingTasks}</strong>
-            </li>
-            <li style={{ padding: '10px' }}>
-              In Progress: <strong style={{ color: '#f39c12' }}>{stats.inProgressTasks}</strong>
-            </li>
-          </ul>
-        </div>
+            {/* Priority Breakdown */}
+            <div className="priority-section">
+              <h2>Priority Breakdown</h2>
+              <div className="priority-grid">
+                <div className="priority-card high">
+                  <div className="priority-dot"></div>
+                  <div className="priority-info">
+                    <span className="priority-label">High Priority</span>
+                    <span className="priority-number">{stats.highPriority}</span>
+                  </div>
+                  <div className="priority-bar">
+                    <div 
+                      className="priority-bar-fill high" 
+                      style={{ 
+                        width: stats.totalTasks > 0 
+                          ? `${(stats.highPriority / stats.totalTasks) * 100}%` 
+                          : '0%' 
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="priority-card medium">
+                  <div className="priority-dot"></div>
+                  <div className="priority-info">
+                    <span className="priority-label">Medium Priority</span>
+                    <span className="priority-number">{stats.mediumPriority}</span>
+                  </div>
+                  <div className="priority-bar">
+                    <div 
+                      className="priority-bar-fill medium" 
+                      style={{ 
+                        width: stats.totalTasks > 0 
+                          ? `${(stats.mediumPriority / stats.totalTasks) * 100}%` 
+                          : '0%' 
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="priority-card low">
+                  <div className="priority-dot"></div>
+                  <div className="priority-info">
+                    <span className="priority-label">Low Priority</span>
+                    <span className="priority-number">{stats.lowPriority}</span>
+                  </div>
+                  <div className="priority-bar">
+                    <div 
+                      className="priority-bar-fill low" 
+                      style={{ 
+                        width: stats.totalTasks > 0 
+                          ? `${(stats.lowPriority / stats.totalTasks) * 100}%` 
+                          : '0%' 
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Completion Rate & Summary */}
+            <div className="reports-bottom">
+              <div className="completion-card">
+                <h3>Completion Rate</h3>
+                <div className="completion-circle">
+                  <svg viewBox="0 0 120 120" className="circle-svg">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="#e8ece8"
+                      strokeWidth="10"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="#3a7a5a"
+                      strokeWidth="10"
+                      strokeDasharray="339.292"
+                      strokeDashoffset={339.292 - (339.292 * stats.completionRate) / 100}
+                      strokeLinecap="round"
+                      className="circle-progress"
+                    />
+                  </svg>
+                  <div className="circle-text">
+                    <span className="circle-number">{stats.completionRate}%</span>
+                    <span className="circle-label">Complete</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="summary-card">
+                <h3>Task Summary</h3>
+                <div className="summary-item">
+                  <span className="summary-label">Total Tasks</span>
+                  <span className="summary-value">{stats.totalTasks}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Completed</span>
+                  <span className="summary-value green">{stats.completedTasks}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Pending</span>
+                  <span className="summary-value orange">{stats.pendingTasks}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">In Progress</span>
+                  <span className="summary-value blue">{stats.inProgressTasks}</span>
+                </div>
+                <div className="summary-divider"></div>
+                <div className="summary-item total">
+                  <span className="summary-label">Completion Rate</span>
+                  <span className="summary-value green">{stats.completionRate}%</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

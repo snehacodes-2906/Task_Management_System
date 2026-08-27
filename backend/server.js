@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 });
 
 
-// Start server
+// server starrt
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

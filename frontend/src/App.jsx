@@ -9,13 +9,14 @@ import {
 import './App.css';
 
 import Landing from './pages/Landing';
-import Register from './pages/Register';
-import Login from './pages/Login';
+import Auth from './pages/Auth';
+// import Register from './pages/Register';
+// import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import AddEditTask from './pages/AddEditTask';
-import Calendar from './pages/Calendar';
+import Calendar from './pages/Calendar.jsx';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 
@@ -40,13 +41,23 @@ function App() {
 
           <Route
             path="/register"
+            element={<Auth />}
+          />
+
+          <Route
+            path="/login"
+            element={<Auth />}
+          />
+
+          {/* <Route
+            path="/register"
             element={<Register />}
           />
 
           <Route
             path="/login"
             element={<Login />}
-          />
+          /> */}
 
 
           {/* Protected pages */}
