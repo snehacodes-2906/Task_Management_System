@@ -71,6 +71,9 @@ router.post('/login', async (req, res) => {
     // Find user
     const user = await User.findOne({ email });
 
+    console.log("LOGIN EMAIL:", email);
+    console.log("USER FOUND:", !!user);
+
     if (!user) {
       return res.status(400).json({
         message: 'Invalid credentials'
@@ -79,7 +82,7 @@ router.post('/login', async (req, res) => {
 
     // Check password
     const correctPassword = await user.matchPassword(password);
-
+    console.log("PASSWORD MATCH:", correctPassword);
     if (!correctPassword) {
       return res.status(400).json({
         message: 'Invalid credentials'
