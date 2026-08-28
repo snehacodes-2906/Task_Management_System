@@ -119,7 +119,7 @@ function Reports() {
       <nav className="reports-navbar">
         <div className="brand">
           <div className="brand-icon">✓</div>
-          Task Manager
+          TaskFlow
         </div>
         <div className="nav-links">
           <Link to="/dashboard">Dashboard</Link>
