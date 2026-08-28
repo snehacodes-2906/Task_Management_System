@@ -38,6 +38,10 @@ function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log("LOGIN/REGISTER BUTTON CLICKED");
+    console.log("isRegister:", isRegister);
+    console.log("formData:", formData);
+
     setError('');
     setLoading(true);
 
@@ -48,15 +52,15 @@ function Auth() {
       // =========================
       if (isRegister) {
 
-        await api.post('/auth/register', {
+        console.log("Sending REGISTER request...");
+
+        const response=await api.post('/auth/register', {
           name: formData.name,
           email: formData.email,
           password: formData.password
         });
 
-        // IMPORTANT:
-        // We DO NOT store a token here.
-        // User must login separately.
+        console.log("REGISTER RESPONSE:", response.data);
 
         navigate('/login');
 
@@ -67,10 +71,14 @@ function Auth() {
       // =========================
       else {
 
+        console.log("Sending LOGIN request...");
+
         const response = await api.post('/auth/login', {
           email: formData.email,
           password: formData.password
         });
+
+        console.log("LOGIN RESPONSE:", response.data);
 
         // Store token only after LOGIN
         localStorage.setItem(
@@ -83,10 +91,19 @@ function Auth() {
           JSON.stringify(response.data.user)
         );
 
+        console.log("TOKEN SAVED");
+        console.log("Navigating to dashboard...");
+
+
         navigate('/dashboard');
       }
 
     } catch (err) {
+
+      console.log("LOGIN ERROR:", err);
+      console.log("ERROR RESPONSE:", err.response);
+      console.log("ERROR DATA:", err.response?.data);
+
 
       setError(
         err.response?.data?.message ||
