@@ -1,8 +1,27 @@
-// frontend/src/pages/Reports.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import api from '../services/api';
 import './Reports.css';
+
+// Register Chart.js components
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 function Reports() {
   const [stats, setStats] = useState({
@@ -38,6 +57,60 @@ function Reports() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  // Priority Bar Chart Config
+  const priorityChartData = {
+    labels: ['High', 'Medium', 'Low'],
+    datasets: [
+      {
+        label: 'Tasks',
+        data: [stats.highPriority, stats.mediumPriority, stats.lowPriority],
+        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+        borderRadius: 6
+      }
+    ]
+  };
+
+  const priorityChartOptions = {
+    indexAxis: 'y', // Makes the bar chart horizontal
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        beginAtZero: true
+      },
+      y: {
+        grid: { display: false }
+      }
+    }
+  };
+
+  // Completion Rate Doughnut Chart Config
+  const completionChartData = {
+    labels: ['Completed', 'Remaining'],
+    datasets: [
+      {
+        data: [stats.completionRate, Math.max(0, 100 - stats.completionRate)],
+        backgroundColor: ['#3a7a5a', '#e8ece8'],
+        borderWidth: 0,
+        cutout: '80%'
+      }
+    ]
+  };
+
+  const completionChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true }
+    }
   };
 
   return (
@@ -85,28 +158,24 @@ function Reports() {
             {/* Stats Grid */}
             <div className="stats-grid">
               <div className="stat-card">
-                
                 <div className="stat-info">
                   <span className="stat-label">Total Tasks</span>
                   <span className="stat-number">{stats.totalTasks}</span>
                 </div>
               </div>
               <div className="stat-card green">
-                
                 <div className="stat-info">
                   <span className="stat-label">Completed</span>
                   <span className="stat-number">{stats.completedTasks}</span>
                 </div>
               </div>
               <div className="stat-card orange">
-                
                 <div className="stat-info">
                   <span className="stat-label">Pending</span>
                   <span className="stat-number">{stats.pendingTasks}</span>
                 </div>
               </div>
               <div className="stat-card blue">
-                
                 <div className="stat-info">
                   <span className="stat-label">In Progress</span>
                   <span className="stat-number">{stats.inProgressTasks}</span>
@@ -114,98 +183,29 @@ function Reports() {
               </div>
             </div>
 
-            {/* Priority Breakdown */}
+            {/* Priority Breakdown (Chart.js Bar Chart) */}
             <div className="priority-section">
               <h2>Priority Breakdown</h2>
-              <div className="priority-grid">
-                <div className="priority-card high">
-                  <div className="priority-dot"></div>
-                  <div className="priority-info">
-                    <span className="priority-label">High Priority</span>
-                    <span className="priority-number">{stats.highPriority}</span>
-                  </div>
-                  <div className="priority-bar">
-                    <div 
-                      className="priority-bar-fill high" 
-                      style={{ 
-                        width: stats.totalTasks > 0 
-                          ? `${(stats.highPriority / stats.totalTasks) * 100}%` 
-                          : '0%' 
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="priority-card medium">
-                  <div className="priority-dot"></div>
-                  <div className="priority-info">
-                    <span className="priority-label">Medium Priority</span>
-                    <span className="priority-number">{stats.mediumPriority}</span>
-                  </div>
-                  <div className="priority-bar">
-                    <div 
-                      className="priority-bar-fill medium" 
-                      style={{ 
-                        width: stats.totalTasks > 0 
-                          ? `${(stats.mediumPriority / stats.totalTasks) * 100}%` 
-                          : '0%' 
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="priority-card low">
-                  <div className="priority-dot"></div>
-                  <div className="priority-info">
-                    <span className="priority-label">Low Priority</span>
-                    <span className="priority-number">{stats.lowPriority}</span>
-                  </div>
-                  <div className="priority-bar">
-                    <div 
-                      className="priority-bar-fill low" 
-                      style={{ 
-                        width: stats.totalTasks > 0 
-                          ? `${(stats.lowPriority / stats.totalTasks) * 100}%` 
-                          : '0%' 
-                      }}
-                    />
-                  </div>
-                </div>
+              <div style={{ height: '220px', marginTop: '16px' }}>
+                <Bar data={priorityChartData} options={priorityChartOptions} />
               </div>
             </div>
 
             {/* Completion Rate & Summary */}
             <div className="reports-bottom">
+              {/* Completion Rate (Chart.js Doughnut Chart) */}
               <div className="completion-card">
                 <h3>Completion Rate</h3>
-                <div className="completion-circle">
-                  <svg viewBox="0 0 120 120" className="circle-svg">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#e8ece8"
-                      strokeWidth="10"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#3a7a5a"
-                      strokeWidth="10"
-                      strokeDasharray="339.292"
-                      strokeDashoffset={339.292 - (339.292 * stats.completionRate) / 100}
-                      strokeLinecap="round"
-                      className="circle-progress"
-                    />
-                  </svg>
-                  <div className="circle-text">
+                <div className="completion-circle" style={{ position: 'relative' }}>
+                  <Doughnut data={completionChartData} options={completionChartOptions} />
+                  <div className="circle-text" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
                     <span className="circle-number">{stats.completionRate}%</span>
                     <span className="circle-label">Complete</span>
                   </div>
                 </div>
               </div>
 
+              {/* Task Summary */}
               <div className="summary-card">
                 <h3>Task Summary</h3>
                 <div className="summary-item">

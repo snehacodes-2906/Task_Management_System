@@ -18,6 +18,10 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Project stats
+  const [activeProjects, setActiveProjects] = useState(0);
+  const [completedProjects, setCompletedProjects] = useState(0);
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -31,9 +35,9 @@ function Dashboard() {
       ]);
       
       const tasks = tasksRes.data;
-      const projects = projectsRes.data;
+      const projectsData = projectsRes.data;
       
-      // Calculate stats
+      // Calculate task stats
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter(t => t.status === 'Completed').length;
       const pendingTasks = tasks.filter(t => t.status === 'Pending').length;
@@ -60,9 +64,15 @@ function Dashboard() {
         completionRate
       });
       
-      // Get recent tasks (last 5)
+      // Calculate project stats
+      const active = projectsData.filter(p => p.status === 'Active' || !p.status).length;
+      const completed = projectsData.filter(p => p.status === 'Completed').length;
+      setActiveProjects(active);
+      setCompletedProjects(completed);
+      
+      // Get recent tasks (last 5) and projects (last 3)
       setRecentTasks(tasks.slice(0, 5));
-      setProjects(projects.slice(0, 3));
+      setProjects(projectsData.slice(0, 3));
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -170,7 +180,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats - 6 Cards */}
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-label">Total Tasks</div>
@@ -187,6 +197,14 @@ function Dashboard() {
           <div className="stat-card">
             <div className="stat-label">In Progress</div>
             <div className="stat-number blue">{stats.inProgressTasks}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Active Projects</div>
+            <div className="stat-number blue">{activeProjects}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Completed Projects</div>
+            <div className="stat-number green">{completedProjects}</div>
           </div>
         </div>
 
@@ -259,7 +277,7 @@ function Dashboard() {
                           {missed && ' ⚠'}
                         </div>
                         <div className="meta">
-                          {task.projectId?.name || 'No Project'} • {formatDate(task.deadline)}
+                          {task.projectId ? task.projectId.name : 'No Project'} • {formatDate(task.deadline)}
                           {missed && <span style={{ color: '#b83a3a', marginLeft: '6px', fontWeight: 600 }}>Missed!</span>}
                         </div>
                       </div>
@@ -291,18 +309,25 @@ function Dashboard() {
                   <Link to="/projects" className="empty-btn">+ Add Project</Link>
                 </div>
               ) : (
-                projects.map(project => (
-                  <div key={project._id} className="project-item">
-                    <div className="project-icon">{getProjectInitial(project.name)}</div>
-                    <div className="project-info">
-                      <div className="name">{project.name}</div>
-                      <div className="desc">{project.description || 'No description'}</div>
+                projects.map(project => {
+                  // Count tasks for this project
+                  const taskCount = recentTasks.filter(t => t.projectId === project._id).length;
+                  return (
+                    <div key={project._id} className="project-item">
+                      <div className="project-icon">{getProjectInitial(project.name)}</div>
+                      <div className="project-info">
+                        <div className="name">{project.name}</div>
+                        <div className="desc">
+                          {project.status === 'Completed' ? '✓ Completed' : '● Active'}
+                          {project.description && ` • ${project.description}`}
+                        </div>
+                      </div>
+                      <div className="project-count">
+                        {taskCount || 0} tasks
+                      </div>
                     </div>
-                    <div className="project-count">
-                      {project.tasks?.length || 0} tasks
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

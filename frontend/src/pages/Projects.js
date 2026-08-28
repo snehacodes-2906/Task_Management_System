@@ -14,7 +14,8 @@ function Projects() {
   const [formError, setFormError] = useState('');
   const [formData, setFormData] = useState({ 
     name: '', 
-    description: '' 
+    description: '',
+    deadline: ''
   });
   const navigate = useNavigate();
 
@@ -42,18 +43,26 @@ function Projects() {
     e.preventDefault();
     setFormError('');
     
-    // Validate description
+    if (!formData.name || formData.name.trim() === '') {
+      setFormError('Project name is required');
+      return;
+    }
     if (!formData.description || formData.description.trim() === '') {
       setFormError('Description is required');
+      return;
+    }
+    if (!formData.deadline) {
+      setFormError('Deadline is required');
       return;
     }
     
     try {
       await api.post('/projects', {
         name: formData.name,
-        description: formData.description
+        description: formData.description,
+        deadline: formData.deadline
       });
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', deadline: '' });
       setShowForm(false);
       fetchData();
     } catch (err) {
@@ -62,40 +71,56 @@ function Projects() {
     }
   };
 
-  // Edit project - open edit form
   const handleEditClick = (project) => {
     setEditingProject(project);
     setFormData({
       name: project.name,
-      description: project.description || ''
+      description: project.description || '',
+      deadline: project.deadline ? project.deadline.split('T')[0] : ''
     });
     setShowEditForm(true);
     setFormError('');
   };
 
-  // Update project
   const handleUpdate = async (e) => {
     e.preventDefault();
     setFormError('');
     
-    // Validate description
+    if (!formData.name || formData.name.trim() === '') {
+      setFormError('Project name is required');
+      return;
+    }
     if (!formData.description || formData.description.trim() === '') {
       setFormError('Description is required');
+      return;
+    }
+    if (!formData.deadline) {
+      setFormError('Deadline is required');
       return;
     }
     
     try {
       await api.put(`/projects/${editingProject._id}`, {
         name: formData.name,
-        description: formData.description
+        description: formData.description,
+        deadline: formData.deadline
       });
       setShowEditForm(false);
       setEditingProject(null);
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', deadline: '' });
       fetchData();
     } catch (err) {
       console.error('Error updating project:', err);
       setFormError(err.response?.data?.message || 'Failed to update project');
+    }
+  };
+
+  const toggleProjectStatus = async (project) => {
+    try {
+      await api.patch(`/projects/${project._id}/toggle`);
+      fetchData();
+    } catch (err) {
+      console.error('Error toggling project status:', err);
     }
   };
 
@@ -141,8 +166,14 @@ function Projects() {
   const cancelEdit = () => {
     setShowEditForm(false);
     setEditingProject(null);
-    setFormData({ name: '', description: '' });
+    setFormData({ name: '', description: '', deadline: '' });
     setFormError('');
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No deadline';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
@@ -209,6 +240,16 @@ function Projects() {
                   required
                 />
               </div>
+              <div className="form-group">
+                <label>Deadline <span className="required">*</span></label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  required
+                />
+              </div>
               <div className="form-actions">
                 <button type="submit" className="btn-submit">Create Project</button>
                 <button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>
@@ -251,6 +292,16 @@ function Projects() {
                     required
                   />
                 </div>
+                <div className="form-group">
+                  <label>Deadline <span className="required">*</span></label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                    required
+                  />
+                </div>
                 <div className="form-actions">
                   <button type="submit" className="btn-submit">Update Project</button>
                   <button type="button" className="btn-cancel" onClick={cancelEdit}>
@@ -280,13 +331,14 @@ function Projects() {
               const taskCount = getTaskCount(project._id);
               const completedCount = getCompletedCount(project._id);
               const color = getProjectColor(project.name);
+              const isCompleted = project.status === 'Completed';
               
               return (
-                <div key={project._id} className="project-card">
+                <div key={project._id} className={`project-card ${isCompleted ? 'completed' : ''}`}>
                   <div className="project-card-header">
                     <div 
                       className="project-avatar" 
-                      style={{ background: color }}
+                      style={{ background: isCompleted ? '#8a9a90' : color }}
                     >
                       {getInitials(project.name)}
                     </div>
@@ -295,10 +347,25 @@ function Projects() {
                       <p className="project-description">
                         {project.description || 'No description'}
                       </p>
+                      <p className="project-deadline">
+                        Deadline: {formatDate(project.deadline)}
+                      </p>
                     </div>
                   </div>
                   
-                  {/* Stats - Centered */}
+                  {/* Status */}
+                  <div className="project-status">
+                    <span className={`status-badge ${isCompleted ? 'completed' : 'active'}`}>
+                      {isCompleted ? '✓ Done' : '● Active'}
+                    </span>
+                    {project.completedAt && (
+                      <span className="completed-date">
+                        Completed: {new Date(project.completedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Stats */}
                   <div className="project-stats">
                     <div className="stat-item">
                       <span className="stat-number">{taskCount}</span>
@@ -323,7 +390,7 @@ function Projects() {
                         className="progress-bar-fill" 
                         style={{ 
                           width: taskCount > 0 ? `${(completedCount / taskCount) * 100}%` : '0%',
-                          background: color
+                          background: isCompleted ? '#8a9a90' : color
                         }}
                       />
                     </div>
@@ -332,12 +399,28 @@ function Projects() {
                     </span>
                   </div>
                   
+                  {/* Actions */}
                   <div className="project-actions">
+                    {isCompleted ? (
+                      <button 
+                        onClick={() => toggleProjectStatus(project)} 
+                        className="undo-btn"
+                      >
+                        ↺ Reopen
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => toggleProjectStatus(project)} 
+                        className="complete-btn"
+                      >
+                        ✓ Mark Done
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleViewTasks(project._id)} 
                       className="view-tasks-btn"
                     >
-                      View Tasks →
+                      View Tasks 
                     </button>
                     <button 
                       onClick={() => handleEditClick(project)} 

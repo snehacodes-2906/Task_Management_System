@@ -257,14 +257,14 @@ function Tasks() {
                     <div className="task-content">
                       <div className="task-title-row">
                         <h3 className={`task-title ${isCompleted ? 'done' : ''}`}>{task.title}</h3>
-                        {missed && <span className="missed-badge">⚠ Missed</span>}
+                        {missed && <span className="missed-badge">Missed</span>}
                       </div>
                       <p className="task-description">{task.description || 'No description'}</p>
                       <div className="task-meta">
-                        <span className="task-project">📁 {getProjectName(task.projectId)}</span>
-                        <span className="task-deadline">📅 {formatDate(task.deadline)}</span>
+                        <span className="task-project">{getProjectName(task.projectId)}</span>
+                        <span className="task-deadline">{formatDate(task.deadline)}</span>
                         {isCompleted && task.completedAt && (
-                          <span className="task-completed-date">✅ Completed {formatDate(task.completedAt)}</span>
+                          <span className="task-completed-date">Completed {formatDate(task.completedAt)}</span>
                         )}
                       </div>
                     </div>
