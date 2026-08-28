@@ -91,6 +91,8 @@ function Auth() {
           JSON.stringify(response.data.user)
         );
 
+        window.dispatchEvent(new Event('login'));
+
         console.log("TOKEN SAVED");
         console.log("Navigating to dashboard...");
 

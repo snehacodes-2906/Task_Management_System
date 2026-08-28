@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -23,7 +23,24 @@ import Profile from './pages/Profile';
 
 function App() {
 
-  const token = localStorage.getItem('token');
+  const [token, setToken] = useState(
+    localStorage.getItem('token')
+  );
+
+  useEffect(() => {
+
+    const handleLogin = () => {
+      setToken(localStorage.getItem('token'));
+    };
+
+    window.addEventListener('login', handleLogin);
+
+    return () => {
+      window.removeEventListener('login', handleLogin);
+    };
+
+  }, []);
+
 
   return (
     <Router>
